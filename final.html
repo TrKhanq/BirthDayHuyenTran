@@ -42,6 +42,104 @@
             100% { background-position: 0% 50%; }
         }
 
+        /* --- PASSWORD SCREEN STYLES (NEW) --- */
+        #password-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            z-index: 9999; /* Cao hơn tất cả các phần tử khác */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+
+        #password-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(255, 77, 109, 0.3);
+            text-align: center;
+            max-width: 90%;
+            width: 350px;
+            backdrop-filter: blur(10px);
+            border: 2px solid white;
+        }
+
+        .login-box h2 {
+            color: var(--primary-pink);
+            font-family: 'Dancing Script', cursive;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 12px 20px;
+            margin-bottom: 15px;
+            border: 2px solid #ffccd5;
+            border-radius: 50px;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+            text-align: center;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .password-input:focus {
+            border-color: var(--primary-pink);
+            box-shadow: 0 0 10px rgba(255, 77, 109, 0.2);
+        }
+
+        .submit-btn {
+            background: var(--primary-pink);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(255, 77, 109, 0.4);
+        }
+
+        .submit-btn:hover {
+            transform: scale(1.05);
+            background: #e01e45;
+        }
+
+        .error-msg {
+            color: #ff0000;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            height: 20px;
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        /* --- END PASSWORD STYLES --- */
+
         /* Back Button */
         .back-button {
             position: fixed;
@@ -212,6 +310,17 @@
 </head>
 <body>
 
+    <!-- PASSWORD OVERLAY HTML -->
+    <div id="password-overlay">
+        <div class="login-box">
+            <h2>🔒 Khu vực bí mật</h2>
+            <p style="margin-bottom: 20px; font-size: 0.9rem; color: #666;">Nhập ngày sinh của bạn để mở khóa</p>
+            <input type="password" id="passwordInput" class="password-input" placeholder="Nhập mật khẩu..." autocomplete="off">
+            <button class="submit-btn" onclick="checkPassword()">Mở Khóa</button>
+            <div id="errorMsg" class="error-msg">Mật khẩu chưa đúng nha!</div>
+        </div>
+    </div>
+
     <a href="index.html"><button class="back-button">← Quay lại</button></a>
 
     <div class="floating-decoration" style="top: 10%; left: 5%;">🎈</div>
@@ -247,11 +356,54 @@
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
+        // --- PASSWORD LOGIC ---
+        const passwordInput = document.getElementById('passwordInput');
+        const errorMsg = document.getElementById('errorMsg');
+        const overlay = document.getElementById('password-overlay');
+        const loginBox = document.querySelector('.login-box');
+
+        // Lắng nghe sự kiện nhấn Enter
+        passwordInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                checkPassword();
+            }
+        });
+
+        function checkPassword() {
+            const secret = "08012007"; // Mật khẩu của bạn
+            const value = passwordInput.value;
+
+            if (value === secret) {
+                // Đúng mật khẩu
+                errorMsg.style.opacity = '0';
+                
+                // Hiệu ứng pháo giấy ăn mừng khi mở khóa
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+
+                // Ẩn màn hình khóa
+                overlay.classList.add('hidden');
+            } else {
+                // Sai mật khẩu
+                errorMsg.style.opacity = '1';
+                passwordInput.value = ""; // Xóa input
+                passwordInput.focus();
+                
+                // Hiệu ứng rung lắc báo lỗi
+                loginBox.classList.remove('shake');
+                void loginBox.offsetWidth; // Trigger reflow
+                loginBox.classList.add('shake');
+            }
+        }
+
+        // --- EXISTING CARD LOGIC ---
         const card = document.getElementById("birthdayCard");
         const typewriterText = document.getElementById("typewriterText");
         const flipSound = new Audio('https://www.soundjay.com/misc/sounds/page-flip-01a.mp3');
         
-        // Giữ nguyên lời chúc cũ
         const fullWish = "Qua tuổi mới ròi, chúc bạn năm 19 tuổi này thật thành công và hạnh phúc hơn, luôn rực rỡ và rạng ngời. Luôn yêu đời, xinh đẹp hơn nữa!. \n \nThành công rồi đừng quên tui nha 😉.";
         
         let isFlipped = false;
@@ -262,7 +414,7 @@
             card.classList.toggle("flipped");
             card.classList.remove("hint-shake");
             
-            // Âm thanh lật thẻ (giữ lại)
+            // Âm thanh lật thẻ
             flipSound.play().catch(e => {});
 
             if (isFlipped) {
@@ -330,4 +482,3 @@
     </script>
 </body>
 </html>
-
